@@ -5804,16 +5804,28 @@ pre {
 }
 
 .auth-brand-mark {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: #17233a;
-  color: #ffffff;
-  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #111827;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
+  font-size: 14px;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  line-height: 1;
+  letter-spacing: -0.08em;
+  overflow: hidden;
+}
+
+.auth-brand-mark span:first-child {
+  color: #ffffff;
+}
+
+.auth-brand-mark span:last-child {
+  color: #2563eb;
 }
 
 .auth-brand > div:last-child {

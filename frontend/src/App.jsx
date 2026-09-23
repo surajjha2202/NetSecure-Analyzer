@@ -1010,8 +1010,8 @@ function ResetPasswordScreen({
     <div className="login-page">
       <div className="login-card auth-card">
         <div className="auth-brand">
-          <div className="auth-brand-mark">
-            NS
+          <div className="auth-brand-mark" aria-label="NetSecure Analyzer">
+            <span>N</span><span>S</span>
           </div>
 
           <div>
@@ -1356,8 +1356,8 @@ function LoginScreen({
     <div className="login-page">
       <div className="login-card auth-card">
         <div className="auth-brand">
-          <div className="auth-brand-mark">
-            NS
+          <div className="auth-brand-mark" aria-label="NetSecure Analyzer">
+            <span>N</span><span>S</span>
           </div>
 
           <div>
