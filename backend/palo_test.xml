@@ -1,0 +1,18 @@
+<config>
+<devices>
+<entry name="localhost.localdomain">
+<deviceconfig>
+</deviceconfig>
+<network>
+</network>
+<vsys>
+<entry name="vsys1">
+<rulebase>
+<security>
+</security>
+</rulebase>
+</entry>
+</vsys>
+</entry>
+</devices>
+</config>

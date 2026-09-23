@@ -37,3 +37,22 @@ htmlcov/
 # Temporary
 tmp/
 temp/
+
+# Local backup files
+*.bak
+*.backup
+*.before-*
+
+*.password-reset-backup
+*BACKUP*
+*.broken-*
+
+# Local real-device / sensitive configuration captures
+backend/phase5_cisco_config.txt
+
+# Local credential-bearing test configurations
+backend/test_cisco.cfg
+backend/test_insecure_cisco.cfg
+# Local credential-bearing test configurations
+backend/test_cisco_bad_syslog.cfg
+backend/test_e2e_cisco.cfg
