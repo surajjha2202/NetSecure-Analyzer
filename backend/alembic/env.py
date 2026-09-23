@@ -38,6 +38,19 @@ def get_database_url() -> str:
             "DATABASE_URL is not configured and sqlalchemy.url is empty."
         )
 
+    if url.startswith("postgresql://"):
+        url = url.replace(
+            "postgresql://",
+            "postgresql+psycopg://",
+            1,
+        )
+    elif url.startswith("postgres://"):
+        url = url.replace(
+            "postgres://",
+            "postgresql+psycopg://",
+            1,
+        )
+
     return url
 
 
