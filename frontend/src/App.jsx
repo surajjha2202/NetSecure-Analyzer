@@ -47,6 +47,7 @@ function App() {
 
   const [user, setUser] = useState(null);
   const [activeView, setActiveView] = useState("dashboard");
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const [system, setSystem] = useState(null);
   const [database, setDatabase] = useState(null);
@@ -771,19 +772,35 @@ async function rejectSelectedTrainingCandidates() {
       <div className="app dashboard-app">
         <Sidebar
           activeView={activeView}
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
           onNavigate={(view) => {
             if (view === "training") {
               openTraining();
+              setMobileSidebarOpen(false);
               return;
             }
 
             setActiveView(view);
+            setMobileSidebarOpen(false);
           }}
           user={user}
         />
 
         <main className="main-content">
           <header className="dashboard-topbar">
+            <button
+              type="button"
+              className="mobile-menu-button"
+              onClick={() => setMobileSidebarOpen(true)}
+              aria-label="Open navigation menu"
+              aria-expanded={mobileSidebarOpen}
+            >
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+
             <div className="topbar-title">
               <span className="topbar-product">
                 NETSECURE ANALYZER

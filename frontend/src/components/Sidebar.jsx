@@ -162,10 +162,32 @@ export default function Sidebar({
   activeView,
   onNavigate,
   user,
+  mobileOpen = false,
+  onMobileClose,
 }) {
   return (
-    <aside className="sidebar">
-      <div className="brand">
+    <>
+      <div
+        className={mobileOpen ? "mobile-sidebar-backdrop visible" : "mobile-sidebar-backdrop"}
+        onClick={onMobileClose}
+        aria-hidden="true"
+      />
+
+      <aside className={mobileOpen ? "sidebar mobile-open" : "sidebar"}>
+        <div className="mobile-sidebar-header">
+          <span>MENU</span>
+
+          <button
+            type="button"
+            className="mobile-sidebar-close"
+            onClick={onMobileClose}
+            aria-label="Close navigation menu"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="brand">
         <div className="brand-mark">N</div>
 
         <div>
@@ -218,6 +240,7 @@ export default function Sidebar({
           </div>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
