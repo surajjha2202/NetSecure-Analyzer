@@ -7853,3 +7853,116 @@ pre {
     font-size: 10px;
   }
 }
+
+/* =========================================================
+   MOBILE HEADER REFINEMENT
+   Compact security-console header.
+   Desktop layout remains unchanged.
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .dashboard-topbar {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 0;
+    padding: 14px 16px 18px;
+  }
+
+  .mobile-menu-button {
+    position: static;
+    grid-column: 1;
+    grid-row: 1;
+    width: 42px;
+    height: 42px;
+    margin: 0;
+    z-index: 5;
+  }
+
+  .topbar-title {
+    display: contents;
+  }
+
+  .topbar-product {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-product::before {
+    content: "N";
+    flex: 0 0 auto;
+    width: 25px;
+    height: 25px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    background: #111827;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+
+  .topbar-title h1 {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 14px 0 0;
+  }
+
+  .topbar-title p {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin: 4px 0 0;
+  }
+
+  .topbar-actions {
+    grid-column: 3;
+    grid-row: 1;
+    margin: 0;
+  }
+
+  .topbar-user {
+    margin: 0;
+  }
+
+  .topbar-user > div:not(.topbar-avatar) {
+    display: none;
+  }
+
+  .topbar-avatar {
+    width: 36px;
+    height: 36px;
+    margin: 0;
+  }
+
+  .logout-button {
+    display: none;
+  }
+
+  .dashboard-topbar .topbar-product {
+    font-size: 9px;
+    letter-spacing: 1.6px;
+  }
+
+  .dashboard-topbar h1 {
+    font-size: 27px;
+    line-height: 1.12;
+  }
+
+  .dashboard-topbar p {
+    font-size: 13px;
+    line-height: 1.45;
+    max-width: 360px;
+  }
+}
