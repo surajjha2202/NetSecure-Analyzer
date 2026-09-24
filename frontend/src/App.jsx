@@ -875,7 +875,9 @@ async function rejectSelectedTrainingCandidates() {
 
           <div className="page-content">
             {activeView === "dashboard" ? (
-              <Dashboard />
+              <Dashboard
+                onNavigate={(view) => setActiveView(view)}
+              />
 ) : activeView === "compliance" ? (
               <Compliance token={token} />
             ) : activeView === "training" ? (

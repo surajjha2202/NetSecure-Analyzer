@@ -7757,3 +7757,99 @@ pre {
     gap: 10px;
   }
 }
+
+/* =========================================================
+   NETSECURE DASHBOARD PHASE A REFINEMENTS
+   ========================================================= */
+
+.dashboard-empty {
+  min-height: 96px;
+  padding: 16px;
+}
+
+.dashboard-framework-state {
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.dashboard-framework-state-pending {
+  color: #b45309;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.dashboard-framework-state-analyzed {
+  color: #15803d;
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+}
+
+.dashboard-framework-state-neutral {
+  color: #475569;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.dashboard-framework-state-failed {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.dashboard-section-header-action {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboard-section-header-action > .dashboard-section-header {
+  min-width: 0;
+  flex: 1;
+}
+
+.dashboard-view-link {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1px;
+  padding: 5px 0;
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.dashboard-view-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.dashboard-view-link:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (max-width: 600px) {
+  .dashboard-empty {
+    min-height: 92px;
+    padding: 14px 10px;
+  }
+
+  .dashboard-section-header-action {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .dashboard-view-link {
+    font-size: 10px;
+  }
+}

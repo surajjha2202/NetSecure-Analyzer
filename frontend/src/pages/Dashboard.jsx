@@ -250,7 +250,7 @@ function SectionHeader({ title, description }) {
   );
 }
 
-export default function Dashboard() {
+export default function Dashboard({ onNavigate }) {
   const [devices, setDevices] = useState([]);
   const [configurations, setConfigurations] = useState([]);
   const [remediationRequests, setRemediationRequests] =
@@ -495,6 +495,39 @@ export default function Dashboard() {
 
   const selectedFrameworks =
     latestAnalysis?.selected_frameworks || [];
+
+  function getFrameworkState(framework) {
+    const status = String(latestAnalysis?.status || "").toUpperCase();
+
+    if (status === "FAILED" || status === "ERROR") {
+      return {
+        label: "Analysis failed",
+        className: "dashboard-framework-state-failed",
+      };
+    }
+
+    if (
+      status === "COMPLETED" &&
+      selectedFrameworks.includes(framework)
+    ) {
+      return {
+        label: "Analyzed",
+        className: "dashboard-framework-state-analyzed",
+      };
+    }
+
+    if (status === "COMPLETED") {
+      return {
+        label: "Not included",
+        className: "dashboard-framework-state-neutral",
+      };
+    }
+
+    return {
+      label: "Awaiting analysis",
+      className: "dashboard-framework-state-pending",
+    };
+  }
 
   const platformState =
     error
@@ -806,14 +839,17 @@ export default function Dashboard() {
                   </span>
                 </div>
 
-               <span className="dashboard-framework-state">
-                {latestAnalysisAvailable &&
-                selectedFrameworks.includes(framework)
-                  ? "Analyzed"
-                  : latestAnalysisAvailable
-                    ? "Not included"
-                    : "Awaiting analysis"}
-              </span>
+              {(() => {
+                const state = getFrameworkState(framework);
+
+                return (
+                  <span
+                    className={`dashboard-framework-state ${state.className}`}
+                  >
+                    {state.label}
+                  </span>
+                );
+              })()}
               </div>
             ))}
           </div>
@@ -1010,10 +1046,23 @@ export default function Dashboard() {
       </section>
 
       <section className="dashboard-panel dashboard-activity-panel">
-        <SectionHeader
-          title="Recent Security Activity"
-          description="Latest events recorded in the security audit trail."
-        />
+        <div className="dashboard-section-header dashboard-section-header-action">
+          <SectionHeader
+            title="Recent Security Activity"
+            description="Latest events recorded in the security audit trail."
+          />
+
+          {onNavigate && (
+            <button
+              type="button"
+              className="dashboard-view-link"
+              onClick={() => onNavigate("audit")}
+            >
+              View Audit Trail
+              <span aria-hidden="true">→</span>
+            </button>
+          )}
+        </div>
 
         {auditLogs.length === 0 ? (
           <div className="dashboard-empty">
