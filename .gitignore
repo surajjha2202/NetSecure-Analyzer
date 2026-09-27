@@ -56,3 +56,7 @@ backend/test_insecure_cisco.cfg
 # Local credential-bearing test configurations
 backend/test_cisco_bad_syslog.cfg
 backend/test_e2e_cisco.cfg
+
+# Local scanner agent environment
+scanner-agent/.venv/
+scanner-agent/__pycache__/

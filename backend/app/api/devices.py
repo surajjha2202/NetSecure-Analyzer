@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from app.services.scanner_agent import scan_ssh_device_via_agent
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 
@@ -12,7 +12,7 @@ from app.schemas.device import (
 )
 from app.services.audit_service import create_audit_log
 from app.services.permission_dependency import require_permission
-from app.services.ssh_scanner import scan_ssh_device
+
 from app.services.device_intelligence import analyze_device
 from app.services.network_device_mapping import get_netmiko_device_type
 from app.services.analysis_service import analyze_configuration_content
@@ -225,7 +225,7 @@ def scan_device(
         device.last_scan_status = "SCANNING"
         db.commit()
 
-        result = scan_ssh_device(
+        result = scan_ssh_device_via_agent(
             host=device.management_ip,
             username=scan_request.username,
             password=scan_request.password,
