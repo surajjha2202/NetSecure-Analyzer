@@ -79,21 +79,32 @@ const [selectedTrainingCandidateIds, setSelectedTrainingCandidateIds] =
   });
 
     useEffect(() => {
-    async function checkServices() {
-      setLoading(true);
-      setError(null);
+    // Do not run service health checks before authentication.
+    if (!user) {
+      setSystem(null);
+      setDatabase(null);
+      setRedis(null);
+      setLoading(false);
+      return;
+    }
+
+    async function checkServices(showLoading = false) {
+      if (showLoading) {
+        setLoading(true);
+        setError(null);
+      }
 
       const results = await Promise.allSettled([
         axios.get(`${API_URL}/api/health`, {
-          timeout: 5000,
+          timeout: 15000,
         }),
 
         axios.get(`${API_URL}/api/health/database`, {
-          timeout: 5000,
+          timeout: 15000,
         }),
 
         axios.get(`${API_URL}/api/health/redis`, {
-          timeout: 5000,
+          timeout: 15000,
         }),
       ]);
 
@@ -110,6 +121,7 @@ const [selectedTrainingCandidateIds, setSelectedTrainingCandidateIds] =
           "FastAPI health check failed:",
           systemResult.reason
         );
+
         setSystem({
           status: "unhealthy",
           version: "Unavailable",
@@ -123,6 +135,7 @@ const [selectedTrainingCandidateIds, setSelectedTrainingCandidateIds] =
           "Database health check failed:",
           databaseResult.reason
         );
+
         setDatabase({
           status: "unhealthy",
           connection: false,
@@ -136,27 +149,41 @@ const [selectedTrainingCandidateIds, setSelectedTrainingCandidateIds] =
           "Redis health check failed:",
           redisResult.reason
         );
+
         setRedis({
           status: "unhealthy",
           connection: false,
         });
       }
 
-      if (
-        systemResult.status === "rejected" &&
-        databaseResult.status === "rejected" &&
-        redisResult.status === "rejected"
-      ) {
+      // Only report a global backend error when
+      // the main FastAPI service itself is unreachable.
+      if (systemResult.status === "rejected") {
         setError(
           "Unable to connect to the NetSecure Analyzer backend."
         );
+      } else {
+        setError(null);
       }
 
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
 
-    checkServices();
-  }, []);
+    // Run one check immediately after authentication.
+    checkServices(true);
+
+    // Refresh service status every 60 seconds.
+    const healthInterval = setInterval(() => {
+      checkServices(false);
+    }, 60000);
+
+    // Stop the timer when the user logs out or the component unmounts.
+    return () => {
+      clearInterval(healthInterval);
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!token) {
