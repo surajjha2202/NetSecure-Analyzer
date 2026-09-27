@@ -2169,7 +2169,7 @@ function TrainingView({
                     <div className="training-evidence">
                       <span>AI Evidence</span>
                       <ul>
-                        {candidate.evidence.map(
+                        {(Array.isArray(candidate.evidence) ? candidate.evidence : []).map(
                           (item, evidenceIndex) => (
                             <li key={evidenceIndex}>
                               {typeof item === "string"
@@ -4589,3 +4589,4 @@ function ModulePlaceholder({ view }) {
 }
 
 export default App;
+
