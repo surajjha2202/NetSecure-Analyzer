@@ -917,6 +917,7 @@ async function rejectSelectedTrainingCandidates() {
                 trainingCandidates={trainingCandidates}
                 trainingStats={trainingStats}
                 selectedTrainingCandidateId={selectedTrainingCandidateId}
+                setSelectedTrainingCandidateId={setSelectedTrainingCandidateId}
                 selectedTrainingCandidateIds={selectedTrainingCandidateIds}
                 setSelectedTrainingCandidateIds={setSelectedTrainingCandidateIds}
                 form={form}
@@ -1866,6 +1867,7 @@ function TrainingView({
   trainingCandidates,
   trainingStats,
   selectedTrainingCandidateId,
+  setSelectedTrainingCandidateId,
   selectedTrainingCandidateIds,
   setSelectedTrainingCandidateIds,
   form,
@@ -2003,6 +2005,47 @@ function TrainingView({
           Teach Analyzer
         </button>
       </section>
+
+      <div className="training-mapping-toolbar training-top-filters">
+        <div className="training-search">
+          <input
+            type="search"
+            value={mappingSearch}
+            onChange={(event) =>
+              setMappingSearch(event.target.value)
+            }
+            placeholder="Search configuration patterns or parameters..."
+            aria-label="Search learned mappings"
+          />
+        </div>
+
+        <select
+          value={mappingStatus}
+          onChange={(event) =>
+            setMappingStatus(event.target.value)
+          }
+        >
+          <option value="ALL">All Status</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
+
+        <select
+          value={mappingCategory}
+          onChange={(event) =>
+            setMappingCategory(event.target.value)
+          }
+        >
+          <option value="ALL">All Categories</option>
+
+          {categories.map((category) => (
+            <option value={category} key={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {showManualTrainingForm && (
         <section className="training-panel training-manual-panel">
           <div className="training-section-header">
@@ -2471,48 +2514,7 @@ function TrainingView({
           </div>
         </div>
 
-        <div className="training-mapping-toolbar">
-          <div className="training-search">
-            <input
-              type="search"
-              value={mappingSearch}
-              onChange={(event) =>
-                setMappingSearch(event.target.value)
-              }
-              placeholder="Search configuration patterns or parameters..."
-              aria-label="Search learned mappings"
-            />
-          </div>
-
-          <select
-            value={mappingStatus}
-            onChange={(event) =>
-              setMappingStatus(event.target.value)
-            }
-            aria-label="Filter learned mappings by status"
-          >
-            <option value="ALL">All Status</option>
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
-          </select>
-
-          <select
-            value={mappingCategory}
-            onChange={(event) =>
-              setMappingCategory(event.target.value)
-            }
-            aria-label="Filter learned mappings by category"
-          >
-            <option value="ALL">All Categories</option>
-
-            {categories.map((category) => (
-              <option value={category} key={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
-
+      
         {filteredMappings.length === 0 ? (
           <div className="training-empty-state compact">
             <strong>No mappings found</strong>
