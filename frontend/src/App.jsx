@@ -2461,16 +2461,18 @@ function TrainingView({
         </div>
 
         <div className="training-mapping-toolbar">
-          <div className="training-search">
-            <span>⌕</span>
-            <input
-              type="search"
-              value={mappingSearch}
-              onChange={(event) =>
-                setMappingSearch(event.target.value)
-              }
-              placeholder="Search configuration patterns or parameters..."
-            />
+          <div className="training-global-toolbar">
+            <div className="training-search">
+              {/* existing search input */}
+            </div>
+
+            <div className="training-filter">
+              {/* existing status select */}
+            </div>
+
+            <div className="training-filter">
+              {/* existing category select */}
+            </div>
           </div>
 
           <select

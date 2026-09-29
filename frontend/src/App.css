@@ -7966,3 +7966,21 @@ pre {
     max-width: 360px;
   }
 }
+.training-global-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px 180px;
+  gap: 12px;
+  margin: 20px 0 24px;
+  align-items: center;
+}
+
+.training-global-toolbar input,
+.training-global-toolbar select {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .training-global-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
