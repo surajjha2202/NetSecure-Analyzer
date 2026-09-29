@@ -748,7 +748,6 @@ async function rejectSelectedTrainingCandidates() {
             : "",
     });
 
-    setShowManualTrainingForm(true);
 
     setActiveView("training");
     loadMappings();
@@ -2478,7 +2477,10 @@ function TrainingView({
                     <button
                       type="button"
                       className="primary-button"
-                      onClick={() => onTeach(candidate)}
+                      onClick={() => {
+                        onTeach(candidate);
+                        setShowManualTrainingForm(true);
+                      }}
                       disabled={loading}
                     >
                       Teach This
