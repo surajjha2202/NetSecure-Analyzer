@@ -64,6 +64,7 @@ export default function Compliance({ token }) {
   const [error, setError] = useState(null);
 
   const [analysisData, setAnalysisData] = useState(null);
+  const [remediation, setRemediation] = useState(null);
   const [remediationParameters, setRemediationParameters] = useState({});
   const [remediationCreating, setRemediationCreating] = useState(null);
   const [remediationMessage, setRemediationMessage] = useState(null);
