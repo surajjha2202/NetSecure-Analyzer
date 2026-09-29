@@ -70,6 +70,8 @@ export default function Compliance({ token }) {
   const [remediationMessage, setRemediationMessage] = useState(null);
   const [remediationError, setRemediationError] = useState(null);
   const [createdRemediationRules, setCreatedRemediationRules] = useState([]);
+  const [selectedRemediationRule, setSelectedRemediationRule] =
+  useState(null);
 
   const api = useMemo(() => {
     return axios.create({
@@ -104,6 +106,7 @@ export default function Compliance({ token }) {
         setRemediationMessage(null);
         setRemediationError(null);
         setCreatedRemediationRules([]);
+        setSelectedRemediationRule(null);
 
       }
 
@@ -137,6 +140,7 @@ export default function Compliance({ token }) {
       setRemediationMessage(null);
       setRemediationError(null);
       setCreatedRemediationRules([]);
+      setSelectedRemediationRule(null);
 
 
 
@@ -166,6 +170,7 @@ export default function Compliance({ token }) {
       setRemediationMessage(null);
       setRemediationError(null);
       setCreatedRemediationRules([]);
+      setSelectedRemediationRule(null);
 
       setCompliance(data.compliance || null);
 
@@ -370,17 +375,44 @@ export default function Compliance({ token }) {
 
   const remediationItems = useMemo(() => {
     const raw = remediation;
-
     if (Array.isArray(raw)) {
       return raw;
     }
-
     if (Array.isArray(raw?.remediations)) {
       return raw.remediations;
     }
-
     return raw ? [raw] : [];
   }, [remediation]);
+
+  const selectedRemediationObject =
+    selectedRemediationRule?.remediation ||
+    selectedRemediationRule ||
+    null;
+
+  const selectedRemediationCommands =
+    Array.isArray(selectedRemediationObject?.commands)
+      ? selectedRemediationObject.commands
+      : [];
+
+  const selectedRemediationRuleId =
+    selectedRemediationRule?.rule_id ||
+    selectedRemediationObject?.rule_id ||
+    "";
+
+  const selectedRemediationPlaceholders = [
+    ...new Set(
+      selectedRemediationCommands.flatMap((command) =>
+        (command.match(/<([^>]+)>/g) || []).map(
+          (value) => value.slice(1, -1)
+        )
+      )
+    ),
+  ];
+
+  const selectedRemediationAlreadyCreated =
+    createdRemediationRules.includes(
+      selectedRemediationRuleId
+    );
 
   return (
     <section className="module-page compliance-page">
@@ -437,6 +469,7 @@ export default function Compliance({ token }) {
               setRemediationMessage(null);
               setRemediationError(null);
               setCreatedRemediationRules([]);
+              setSelectedRemediationRule(null);
 
               setError(null);
             }}
@@ -645,60 +678,110 @@ export default function Compliance({ token }) {
                       <th>EXPECTED</th>
                       <th>ACTUAL</th>
                       <th>CONFIDENCE</th>
+                      <th>ACTION</th>
                     </tr>
                   </thead>
 
                   <tbody>
-                    {results.map((result, index) => (
-                      <tr
-                        key={
-                          result.rule_id ||
-                          `${selectedFramework}-${index}`
-                        }
-                      >
-                        <td>
-                          <strong>
-                            {result.rule_id || "—"}
-                          </strong>
-                        </td>
+                    {results.map((result, index) => {
+                      const ruleId = result.rule_id || "";
 
-                        <td>
-                          <span
-                            className={`compliance-status ${statusClass(
-                              result.status
-                            )}`}
-                          >
-                            {result.status || "N/A"}
-                          </span>
-                        </td>
+                      const isFailed =
+                        String(result.status || "").toUpperCase() === "FAIL";
 
-                        <td>
-                          {result.title ||
-                            result.description ||
-                            "—"}
-                        </td>
+                      const remediationItem = isFailed
+                        ? remediationItems.find((item) => {
+                            const itemRuleId =
+                              item?.rule_id ||
+                              item?.remediation?.rule_id ||
+                              "";
 
-                        <td>
-                          {String(
-                            result.expected_value ?? "—"
-                          )}
-                        </td>
+                            return itemRuleId === ruleId;
+                          })
+                        : null;
 
-                        <td>
-                          {String(
-                            result.actual_value ?? "N/A"
-                          )}
-                        </td>
+                      return (
+                        <tr
+                          key={
+                            result.rule_id ||
+                            `${selectedFramework}-${index}`
+                          }
+                        >
+                          <td>
+                            <strong>
+                              {result.rule_id || "—"}
+                            </strong>
+                          </td>
 
-                        <td>
-                          {result.confidence != null
-                            ? Number(
-                                result.confidence
-                              ).toFixed(2)
-                            : "—"}
-                        </td>
-                      </tr>
-                    ))}
+                          <td>
+                            <span
+                              className={`compliance-status ${statusClass(
+                                result.status
+                              )}`}
+                            >
+                              {result.status || "N/A"}
+                            </span>
+                          </td>
+
+                          <td>
+                            {result.title ||
+                              result.description ||
+                              "—"}
+                          </td>
+
+                          <td>
+                            {String(
+                              result.expected_value ?? "—"
+                            )}
+                          </td>
+
+                          <td>
+                            {String(
+                              result.actual_value ?? "N/A"
+                            )}
+                          </td>
+
+                          <td>
+                            {result.confidence != null
+                              ? Number(
+                                  result.confidence
+                                ).toFixed(2)
+                              : "—"}
+                          </td>
+
+                          <td>
+                            {isFailed ? (
+                              <button
+                                type="button"
+                                className="primary-button"
+                                disabled={!remediationItem}
+                                onClick={() =>
+                                  setSelectedRemediationRule(
+                                    remediationItem
+                                  )
+                                }
+                                title={
+                                  remediationItem
+                                    ? `Open remediation for ${ruleId}`
+                                    : "Vendor-specific remediation is unavailable"
+                                }
+                                style={{
+                                  whiteSpace: "nowrap",
+                                  padding: "8px 14px",
+                                  fontSize: "13px",
+                                }}
+                              >
+                                {remediationItem
+                                  ? "Remediate"
+                                  : "Unavailable"}
+                              </button>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -707,186 +790,238 @@ export default function Compliance({ token }) {
         </>
       )}
 
-      {summary && remediationItems.length > 0 && (
+      
+      {selectedRemediationRule && (
         <div
-          className="result-card-large"
-          id="compliance-remediation-section"
+          role="presentation"
+          onMouseDown={() =>
+            setSelectedRemediationRule(null)
+          }
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(15, 23, 42, 0.58)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+          }}
         >
-          <h3>
-            Remediation Recommendations
-          </h3>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="remediation-dialog-title"
+            onMouseDown={(event) =>
+              event.stopPropagation()
+            }
+            style={{
+              width: "min(760px, 100%)",
+              maxHeight: "85vh",
+              overflowY: "auto",
+              background: "#ffffff",
+              borderRadius: "16px",
+              padding: "26px",
+              boxShadow:
+                "0 24px 70px rgba(15, 23, 42, 0.28)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: "16px",
+                marginBottom: "18px",
+              }}
+            >
+              <div>
+                <span
+                  className="eyebrow"
+                  style={{
+                    display: "block",
+                    marginBottom: "6px",
+                  }}
+                >
+                  REMEDIATION ACTION
+                </span>
 
-          <p className="muted">
-            Review the recommended vendor-specific
-            corrections and create remediation requests
-            for administrator approval.
-          </p>
+                <h2
+                  id="remediation-dialog-title"
+                  style={{ margin: 0 }}
+                >
+                  {selectedRemediationRuleId ||
+                    "Failed Control"}
+                </h2>
+              </div>
 
-          {remediationMessage && (
-            <div className="module-success">
-              {remediationMessage}
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() =>
+                  setSelectedRemediationRule(null)
+                }
+              >
+                Close
+              </button>
             </div>
-          )}
 
-          {remediationError && (
-            <div className="module-error">
-              {remediationError}
+            <div
+              style={{
+                padding: "14px 16px",
+                marginBottom: "18px",
+                borderRadius: "10px",
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <strong>
+                {selectedRemediationRule?.description ||
+                  selectedRemediationRule?.title ||
+                  "Security control requires remediation."}
+              </strong>
+
+              {selectedRemediationRule?.explanation && (
+                <p
+                  style={{
+                    marginBottom: 0,
+                    marginTop: "8px",
+                  }}
+                >
+                  {selectedRemediationRule.explanation}
+                </p>
+              )}
             </div>
-          )}
 
-          <div className="finding-list">
-            {remediationItems.map(
-              (item, index) => {
-                const remediationObject =
-                  item?.remediation ||
-                  item;
+            {remediationError && (
+              <div className="module-error">
+                {remediationError}
+              </div>
+            )}
 
-                const commands =
-                  Array.isArray(
-                    remediationObject?.commands
-                  )
-                    ? remediationObject.commands
-                    : [];
+            {remediationMessage && (
+              <div className="module-success">
+                {remediationMessage}
+              </div>
+            )}
 
-                const ruleId =
-                  item?.rule_id ||
-                  remediationObject?.rule_id ||
-                  "";
+            {selectedRemediationObject?.vendor && (
+              <p>
+                <strong>Vendor:</strong>{" "}
+                {selectedRemediationObject.vendor}
+              </p>
+            )}
 
-                const alreadyCreated =
-                  createdRemediationRules.includes(
-                    ruleId
-                  );
+            {selectedRemediationCommands.length > 0 ? (
+              <>
+                <div style={{ marginTop: "18px" }}>
+                  <strong>
+                    Recommended remediation
+                  </strong>
 
-                const placeholders = [
-                  ...new Set(
-                    commands.flatMap((command) =>
-                      (
-                        command.match(
-                          /<([^>]+)>/g
-                        ) || []
-                      ).map((value) =>
-                        value.slice(1, -1)
-                      )
-                    )
-                  ),
-                ];
+                  <pre
+                    style={{
+                      marginTop: "10px",
+                      overflowX: "auto",
+                    }}
+                  >
+                    {selectedRemediationCommands.join("\n")}
+                  </pre>
+                </div>
 
-                return (
+                {selectedRemediationPlaceholders.length > 0 && (
                   <div
-                    className="finding-item"
-                    key={
-                      ruleId ||
-                      `compliance-remediation-${index}`
+                    className="remediation-parameters"
+                    style={{ marginTop: "18px" }}
+                  >
+                    <strong>
+                      Required parameters
+                    </strong>
+
+                    {selectedRemediationPlaceholders.map(
+                      (parameterName) => (
+                        <label key={parameterName}>
+                          {parameterName}
+
+                          <input
+                            type="text"
+                            value={
+                              remediationParameters[
+                                `${selectedRemediationRuleId}:${parameterName}`
+                              ] || ""
+                            }
+                            onChange={(event) =>
+                              setRemediationParameters(
+                                (current) => ({
+                                  ...current,
+                                  [`${selectedRemediationRuleId}:${parameterName}`]:
+                                    event.target.value,
+                                })
+                              )
+                            }
+                            placeholder={`Enter ${parameterName}`}
+                          />
+                        </label>
+                      )
+                    )}
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    marginTop: "22px",
+                  }}
+                >
+                  {selectedRemediationAlreadyCreated ? (
+                    <div className="finding-meta">
+                      <span>
+                        REQUEST CREATED
+                      </span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="primary-button"
+                      disabled={
+                        remediationCreating ===
+                        selectedRemediationRuleId
+                      }
+                      onClick={() =>
+                        createRemediation(
+                          selectedRemediationRule,
+                          selectedRemediationObject
+                        )
+                      }
+                    >
+                      {remediationCreating ===
+                      selectedRemediationRuleId
+                        ? "Creating..."
+                        : "Create Remediation Request"}
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() =>
+                      setSelectedRemediationRule(null)
                     }
                   >
-                    <div>
-                      <strong>
-                        {ruleId || "Remediation"}
-                      </strong>
-
-                      {remediationObject?.vendor && (
-                        <p>
-                          Vendor:{" "}
-                          {
-                            remediationObject.vendor
-                          }
-                        </p>
-                      )}
-
-                      {item?.title && (
-                        <p>
-                          {item.title}
-                        </p>
-                      )}
-
-                      {item?.description && (
-                        <p>
-                          {item.description}
-                        </p>
-                      )}
-
-                      {commands.length > 0 ? (
-                        <>
-                          <pre>
-                            {commands.join("\n")}
-                          </pre>
-
-                          {placeholders.length > 0 && (
-                            <div className="remediation-parameters">
-                              <strong>
-                                Required parameters
-                              </strong>
-
-                              {placeholders.map(
-                                (parameterName) => (
-                                  <label
-                                    key={parameterName}
-                                  >
-                                    {parameterName}
-
-                                    <input
-                                      type="text"
-                                      value={
-                                        remediationParameters[
-                                          `${ruleId}:${parameterName}`
-                                        ] || ""
-                                      }
-                                      onChange={(event) =>
-                                        setRemediationParameters(
-                                          (current) => ({
-                                            ...current,
-                                            [`${ruleId}:${parameterName}`]:
-                                              event.target.value,
-                                          })
-                                        )
-                                      }
-                                      placeholder={`Enter ${parameterName}`}
-                                    />
-                                  </label>
-                                )
-                              )}
-                            </div>
-                          )}
-
-                          {alreadyCreated ? (
-                            <div className="finding-meta">
-                              <span>
-                                REQUEST CREATED
-                              </span>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              className="primary-button"
-                              disabled={
-                                remediationCreating ===
-                                ruleId
-                              }
-                              onClick={() =>
-                                createRemediation(
-                                  item,
-                                  remediationObject
-                                )
-                              }
-                            >
-                              {remediationCreating ===
-                              ruleId
-                                ? "Creating..."
-                                : "Create Remediation Request"}
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <p className="muted">
-                          Remediation details were
-                          returned without CLI commands.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div
+                className="module-error"
+                style={{ marginTop: "18px" }}
+              >
+                Vendor-specific remediation commands are
+                not available for this failed control.
+              </div>
             )}
           </div>
         </div>
