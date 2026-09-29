@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../api/client";
+import { createRemediationRequest } from "../api/remediation";
 
 const FRAMEWORKS = [
   {
@@ -62,6 +63,13 @@ export default function Compliance({ token }) {
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [error, setError] = useState(null);
 
+  const [analysisData, setAnalysisData] = useState(null);
+  const [remediationParameters, setRemediationParameters] = useState({});
+  const [remediationCreating, setRemediationCreating] = useState(null);
+  const [remediationMessage, setRemediationMessage] = useState(null);
+  const [remediationError, setRemediationError] = useState(null);
+  const [createdRemediationRules, setCreatedRemediationRules] = useState([]);
+
   const api = useMemo(() => {
     return axios.create({
       baseURL: API_URL,
@@ -89,6 +97,13 @@ export default function Compliance({ token }) {
         setCompliance(null);
         setFrameworkResults([]);
         setSelectedFramework("CIS");
+        setRemediation(null);
+        setAnalysisData(null);
+        setRemediationParameters({});
+        setRemediationMessage(null);
+        setRemediationError(null);
+        setCreatedRemediationRules([]);
+
       }
 
       return items;
@@ -115,6 +130,14 @@ export default function Compliance({ token }) {
     try {
       setLoadingAnalysis(true);
       setError(null);
+      setAnalysisData(null);
+      setRemediation(null);
+      setRemediationParameters({});
+      setRemediationMessage(null);
+      setRemediationError(null);
+      setCreatedRemediationRules([]);
+
+
 
       const frameworks = [
         "CIS",
@@ -135,7 +158,15 @@ export default function Compliance({ token }) {
 
       const data = response.data;
 
-        setCompliance(data.compliance || null);
+        
+      setAnalysisData(data);
+      setRemediation(data.remediation || null);
+      setRemediationParameters({});
+      setRemediationMessage(null);
+      setRemediationError(null);
+      setCreatedRemediationRules([]);
+
+      setCompliance(data.compliance || null);
 
         const normalizedFrameworkResults = Object.entries(
           data.framework_results || {}
@@ -171,6 +202,149 @@ export default function Compliance({ token }) {
     }
   }
 
+  async function createRemediation(
+    item,
+    remediationObject
+  ) {
+    try {
+      setRemediationCreating(
+        item?.rule_id ||
+          remediationObject?.rule_id
+      );
+
+      setRemediationError(null);
+      setRemediationMessage(null);
+
+      const ruleId =
+        item?.rule_id ||
+        remediationObject?.rule_id;
+
+      if (!ruleId) {
+        throw new Error(
+          "Remediation rule ID is missing."
+        );
+      }
+
+      const vendor =
+        remediationObject?.vendor ||
+        item?.vendor ||
+        analysisData?.device_intelligence?.vendor ||
+        analysisData?.vendor ||
+        remediation?.vendor ||
+        "Unknown";
+
+      const commands =
+        Array.isArray(
+          remediationObject?.commands
+        )
+          ? remediationObject.commands
+          : [];
+
+      if (!commands.length) {
+        throw new Error(
+          "No remediation command is available."
+        );
+      }
+
+      const command = commands[0];
+
+      const parameters = {};
+
+      const placeholderMatches =
+        command.match(/<([^>]+)>/g) || [];
+
+      for (const placeholder of placeholderMatches) {
+        const parameterName =
+          placeholder.slice(1, -1);
+
+        const value =
+          remediationParameters[
+            `${ruleId}:${parameterName}`
+          ];
+
+        if (!value?.trim()) {
+          throw new Error(
+            `Enter a value for ${parameterName}.`
+          );
+        }
+
+        parameters[parameterName] =
+          value.trim();
+      }
+
+      const payload = {
+        configuration_id:
+          Number(selectedConfigurationId),
+
+        device_id:
+          analysisData?.device_id ?? null,
+
+        rule_id: ruleId,
+
+        control:
+          remediationObject?.control ||
+          remediationObject?.canonical_control ||
+          null,
+
+        vendor,
+
+        command,
+
+        explanation:
+          remediationObject?.explanation ||
+          item?.description ||
+          item?.title ||
+          null,
+
+        remediation: remediationObject,
+
+        parameters:
+          Object.keys(parameters).length > 0
+            ? parameters
+            : null,
+      };
+
+      await createRemediationRequest(payload);
+
+      setCreatedRemediationRules(
+        (current) =>
+          current.includes(ruleId)
+            ? current
+            : [...current, ruleId]
+      );
+
+      setRemediationMessage(
+        `Remediation request created for ${ruleId}. Open the Remediation page to review and approve it.`
+      );
+
+      setRemediationParameters(
+        (current) => {
+          const next = { ...current };
+
+          Object.keys(parameters).forEach(
+            (parameterName) => {
+              delete next[
+                `${ruleId}:${parameterName}`
+              ];
+            }
+          );
+
+          return next;
+        }
+      );
+    } catch (err) {
+      console.error(err);
+
+      setRemediationError(
+        err.response?.data?.detail ||
+          err.message ||
+          "Unable to create remediation request."
+      );
+    } finally {
+      setRemediationCreating(null);
+    }
+  }
+
   useEffect(() => {
     loadConfigurations();
   }, []);
@@ -192,6 +366,20 @@ export default function Compliance({ token }) {
     );
 
   const results = summary?.results || [];
+
+  const remediationItems = useMemo(() => {
+    const raw = remediation;
+
+    if (Array.isArray(raw)) {
+      return raw;
+    }
+
+    if (Array.isArray(raw?.remediations)) {
+      return raw.remediations;
+    }
+
+    return raw ? [raw] : [];
+  }, [remediation]);
 
   return (
     <section className="module-page compliance-page">
@@ -242,6 +430,13 @@ export default function Compliance({ token }) {
               setCompliance(null);
               setFrameworkResults([]);
               setSelectedFramework("CIS");
+              setAnalysisData(null);
+              setRemediation(null);
+              setRemediationParameters({});
+              setRemediationMessage(null);
+              setRemediationError(null);
+              setCreatedRemediationRules([]);
+
               setError(null);
             }}
             disabled={loadingConfigurations}
@@ -511,6 +706,190 @@ export default function Compliance({ token }) {
         </>
       )}
 
+      {summary && remediationItems.length > 0 && (
+        <div
+          className="result-card-large"
+          id="compliance-remediation-section"
+        >
+          <h3>
+            Remediation Recommendations
+          </h3>
+
+          <p className="muted">
+            Review the recommended vendor-specific
+            corrections and create remediation requests
+            for administrator approval.
+          </p>
+
+          {remediationMessage && (
+            <div className="module-success">
+              {remediationMessage}
+            </div>
+          )}
+
+          {remediationError && (
+            <div className="module-error">
+              {remediationError}
+            </div>
+          )}
+
+          <div className="finding-list">
+            {remediationItems.map(
+              (item, index) => {
+                const remediationObject =
+                  item?.remediation ||
+                  item;
+
+                const commands =
+                  Array.isArray(
+                    remediationObject?.commands
+                  )
+                    ? remediationObject.commands
+                    : [];
+
+                const ruleId =
+                  item?.rule_id ||
+                  remediationObject?.rule_id ||
+                  "";
+
+                const alreadyCreated =
+                  createdRemediationRules.includes(
+                    ruleId
+                  );
+
+                const placeholders = [
+                  ...new Set(
+                    commands.flatMap((command) =>
+                      (
+                        command.match(
+                          /<([^>]+)>/g
+                        ) || []
+                      ).map((value) =>
+                        value.slice(1, -1)
+                      )
+                    )
+                  ),
+                ];
+
+                return (
+                  <div
+                    className="finding-item"
+                    key={
+                      ruleId ||
+                      `compliance-remediation-${index}`
+                    }
+                  >
+                    <div>
+                      <strong>
+                        {ruleId || "Remediation"}
+                      </strong>
+
+                      {remediationObject?.vendor && (
+                        <p>
+                          Vendor:{" "}
+                          {
+                            remediationObject.vendor
+                          }
+                        </p>
+                      )}
+
+                      {item?.title && (
+                        <p>
+                          {item.title}
+                        </p>
+                      )}
+
+                      {item?.description && (
+                        <p>
+                          {item.description}
+                        </p>
+                      )}
+
+                      {commands.length > 0 ? (
+                        <>
+                          <pre>
+                            {commands.join("\n")}
+                          </pre>
+
+                          {placeholders.length > 0 && (
+                            <div className="remediation-parameters">
+                              <strong>
+                                Required parameters
+                              </strong>
+
+                              {placeholders.map(
+                                (parameterName) => (
+                                  <label
+                                    key={parameterName}
+                                  >
+                                    {parameterName}
+
+                                    <input
+                                      type="text"
+                                      value={
+                                        remediationParameters[
+                                          `${ruleId}:${parameterName}`
+                                        ] || ""
+                                      }
+                                      onChange={(event) =>
+                                        setRemediationParameters(
+                                          (current) => ({
+                                            ...current,
+                                            [`${ruleId}:${parameterName}`]:
+                                              event.target.value,
+                                          })
+                                        )
+                                      }
+                                      placeholder={`Enter ${parameterName}`}
+                                    />
+                                  </label>
+                                )
+                              )}
+                            </div>
+                          )}
+
+                          {alreadyCreated ? (
+                            <div className="finding-meta">
+                              <span>
+                                REQUEST CREATED
+                              </span>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className="primary-button"
+                              disabled={
+                                remediationCreating ===
+                                ruleId
+                              }
+                              onClick={() =>
+                                createRemediation(
+                                  item,
+                                  remediationObject
+                                )
+                              }
+                            >
+                              {remediationCreating ===
+                              ruleId
+                                ? "Creating..."
+                                : "Create Remediation Request"}
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <p className="muted">
+                          Remediation details were
+                          returned without CLI commands.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+            )}
+          </div>
+        </div>
+      )}
       {!summary && !loadingAnalysis && (
         <div className="module-card empty-state">
           Select a configuration and run a compliance
