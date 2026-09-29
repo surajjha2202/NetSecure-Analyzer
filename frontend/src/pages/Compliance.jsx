@@ -70,6 +70,7 @@ export default function Compliance({ token }) {
   const [remediationMessage, setRemediationMessage] = useState(null);
   const [remediationError, setRemediationError] = useState(null);
   const [createdRemediationRules, setCreatedRemediationRules] = useState([]);
+  const [showRemediation, setShowRemediation] = useState(false);
 
   const api = useMemo(() => {
     return axios.create({
@@ -104,6 +105,8 @@ export default function Compliance({ token }) {
         setRemediationMessage(null);
         setRemediationError(null);
         setCreatedRemediationRules([]);
+        setShowRemediation(false);
+
 
       }
 
@@ -137,6 +140,8 @@ export default function Compliance({ token }) {
       setRemediationMessage(null);
       setRemediationError(null);
       setCreatedRemediationRules([]);
+
+      setShowRemediation(false);
 
 
 
@@ -437,6 +442,8 @@ export default function Compliance({ token }) {
               setRemediationMessage(null);
               setRemediationError(null);
               setCreatedRemediationRules([]);
+              setShowRemediation(false);
+
 
               setError(null);
             }}
@@ -453,7 +460,7 @@ export default function Compliance({ token }) {
                 key={configuration.id}
                 value={configuration.id}
               >
-                #{configuration.id} —{" "}
+                #{configuration.id} â€”{" "}
                 {configuration.filename}
               </option>
             ))}
@@ -584,7 +591,7 @@ export default function Compliance({ token }) {
               </span>
             </div>
 
-            <div className="stat-card">
+            <div className="stat-card compliance-fail-card">
               <span className="stat-label">
                 FAIL
               </span>
@@ -596,6 +603,34 @@ export default function Compliance({ token }) {
               <span>
                 Controls requiring attention
               </span>
+
+              {remediationItems.length > 0 && (
+                <button
+                  type="button"
+                  className="secondary-button compliance-remediation-toggle"
+                  onClick={() => {
+                    if (showRemediation) {
+                      setShowRemediation(false);
+                      return;
+                    }
+
+                    setShowRemediation(true);
+
+                    window.setTimeout(() => {
+                      document
+                        .getElementById("compliance-remediation-section")
+                        ?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
+                    }, 50);
+                  }}
+                >
+                  {showRemediation
+                    ? "Hide Remediation ↑"
+                    : "View Remediation ↓"}
+                </button>
+              )}
             </div>
 
             <div className="stat-card">
@@ -658,7 +693,7 @@ export default function Compliance({ token }) {
                       >
                         <td>
                           <strong>
-                            {result.rule_id || "—"}
+                            {result.rule_id || "â€”"}
                           </strong>
                         </td>
 
@@ -675,12 +710,12 @@ export default function Compliance({ token }) {
                         <td>
                           {result.title ||
                             result.description ||
-                            "—"}
+                            "â€”"}
                         </td>
 
                         <td>
                           {String(
-                            result.expected_value ?? "—"
+                            result.expected_value ?? "â€”"
                           )}
                         </td>
 
@@ -695,7 +730,7 @@ export default function Compliance({ token }) {
                             ? Number(
                                 result.confidence
                               ).toFixed(2)
-                            : "—"}
+                            : "â€”"}
                         </td>
                       </tr>
                     ))}
@@ -707,20 +742,40 @@ export default function Compliance({ token }) {
         </>
       )}
 
-      {summary && remediationItems.length > 0 && (
+      {summary && remediationItems.length > 0 && showRemediation && (
         <div
           className="result-card-large"
           id="compliance-remediation-section"
         >
-          <h3>
-            Remediation Recommendations
-          </h3>
+          <div
+            className="module-card-header"
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: "16px",
+            }}
+          >
+            <div>
+              <h3>
+                Remediation Recommendations
+              </h3>
 
-          <p className="muted">
-            Review the recommended vendor-specific
-            corrections and create remediation requests
-            for administrator approval.
-          </p>
+              <p className="muted">
+                Review the recommended vendor-specific
+                corrections and create remediation requests
+                for administrator approval.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => setShowRemediation(false)}
+            >
+              Hide Remediation ↑
+            </button>
+          </div>
 
           {remediationMessage && (
             <div className="module-success">
