@@ -1,5 +1,5 @@
 import Devices from "./pages/Devices";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
 import Sidebar from "./components/Sidebar";
@@ -1886,6 +1886,22 @@ function TrainingView({
   const [selectedMapping, setSelectedMapping] = useState(null);
   const [showManualTrainingForm, setShowManualTrainingForm] =
     useState(false);
+  const trainingFormRef = useRef(null);
+  const trainingPatternRef = useRef(null);
+  const openTrainingForm = () => {
+    setShowManualTrainingForm(true);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        trainingFormRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+
+        trainingPatternRef.current?.focus();
+      });
+    });
+  };
 
   const baselineParameters = {
     Authentication: [
@@ -1997,7 +2013,7 @@ function TrainingView({
               baseline_parameter: "",
               expected_value: "",
             });
-            setShowManualTrainingForm(true);
+            openTrainingForm();
           }}
         >
           <span>+</span>
@@ -2046,7 +2062,10 @@ function TrainingView({
       </div>
 
       {showManualTrainingForm && (
-        <section className="training-panel training-manual-panel">
+        <section
+          ref={trainingFormRef}
+          className="training-panel training-manual-panel"
+        >
           <div className="training-section-header">
             <div>
               <div className="training-section-kicker">
@@ -2108,6 +2127,7 @@ function TrainingView({
                 <span>Configuration Pattern</span>
 
                 <textarea
+                  ref={trainingPatternRef}
                   value={form.configuration_pattern}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -2479,7 +2499,7 @@ function TrainingView({
                       className="primary-button"
                       onClick={() => {
                         onTeach(candidate);
-                        setShowManualTrainingForm(true);
+                        openTrainingForm();
                       }}
                       disabled={loading}
                     >
