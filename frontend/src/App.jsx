@@ -564,6 +564,7 @@ const [selectedTrainingCandidateIds, setSelectedTrainingCandidateIds] =
       });
 
       setSelectedTrainingCandidateId(null);
+      setShowManualTrainingForm(false);
 
       await Promise.all([
         loadMappings(),
@@ -722,6 +723,7 @@ async function rejectSelectedTrainingCandidates() {
   }
   function teachTrainingCandidate(candidate) {
     setSelectedTrainingCandidateId(candidate.id);
+
     setForm({
       configuration_pattern:
         candidate.configuration_line || "",
@@ -745,6 +747,8 @@ async function rejectSelectedTrainingCandidates() {
             ? "True"
             : "",
     });
+
+    setShowManualTrainingForm(true);
 
     setActiveView("training");
     loadMappings();
@@ -1988,7 +1992,214 @@ function TrainingView({
           Teach Analyzer
         </button>
       </section>
+      {showManualTrainingForm && (
+        <section className="training-panel training-manual-panel">
+          <div className="training-section-header">
+            <div>
+              <div className="training-section-kicker">
+                {selectedTrainingCandidateId
+                  ? "AI-ASSISTED TRAINING"
+                  : "MANUAL TRAINING"}
+              </div>
 
+              <h2>
+                {selectedTrainingCandidateId
+                  ? "Review & Teach"
+                  : "Teach Analyzer"}
+              </h2>
+
+              <p>
+                Define what this configuration pattern
+                means so the analyzer can use it in future
+                analyses.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                setShowManualTrainingForm(false);
+                setSelectedTrainingCandidateId(null);
+
+                setForm({
+                  configuration_pattern: "",
+                  security_category: "",
+                  baseline_parameter: "",
+                  expected_value: "",
+                });
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+
+          {selectedTrainingCandidateId && (
+            <div className="training-review-callout">
+              <strong>AI suggestion</strong>
+
+              <span>
+                Review the suggested meaning below before
+                teaching it to the global analyzer.
+              </span>
+            </div>
+          )}
+
+          <form
+            className="training-form"
+            onSubmit={onSubmit}
+          >
+            <div className="training-form-grid">
+
+              <label>
+                <span>Configuration Pattern</span>
+
+                <textarea
+                  value={form.configuration_pattern}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      configuration_pattern:
+                        event.target.value,
+                    }))
+                  }
+                  placeholder="Example: logging host 10.10.10.10"
+                  rows={3}
+                  required
+                />
+
+                <small>
+                  Enter the configuration syntax or pattern
+                  the analyzer should recognize.
+                </small>
+              </label>
+
+              <label>
+                <span>Security Category</span>
+
+                <select
+                  value={form.security_category}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      security_category:
+                        event.target.value,
+                      baseline_parameter: "",
+                    }))
+                  }
+                  required
+                >
+                  <option value="">
+                    Select category
+                  </option>
+
+                  {categories.map((category) => (
+                    <option
+                      key={category}
+                      value={category}
+                    >
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                <span>Baseline Parameter</span>
+
+                <select
+                  value={form.baseline_parameter}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      baseline_parameter:
+                        event.target.value,
+                    }))
+                  }
+                  required
+                  disabled={!form.security_category}
+                >
+                  <option value="">
+                    Select baseline parameter
+                  </option>
+
+                  {(baselineParameters[
+                    form.security_category
+                  ] || []).map((parameter) => (
+                    <option
+                      key={parameter}
+                      value={parameter}
+                    >
+                      {parameter}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                <span>Expected Value</span>
+
+                <select
+                  value={form.expected_value}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      expected_value:
+                        event.target.value,
+                    }))
+                  }
+                  required
+                >
+                  <option value="">
+                    Select expected value
+                  </option>
+
+                  <option value="True">
+                    True
+                  </option>
+
+                  <option value="False">
+                    False
+                  </option>
+                </select>
+              </label>
+
+            </div>
+
+            {error && (
+              <div className="module-error">
+                {error}
+              </div>
+            )}
+
+            <div className="training-form-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => {
+                  setShowManualTrainingForm(false);
+                  setSelectedTrainingCandidateId(null);
+                }}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={loading}
+              >
+                {loading
+                  ? "Teaching..."
+                  : selectedTrainingCandidateId
+                    ? "Approve & Teach"
+                    : "Teach Analyzer"}
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
       <section className="training-stat-grid">
         <div className="training-stat-card">
           <span className="training-stat-label">
