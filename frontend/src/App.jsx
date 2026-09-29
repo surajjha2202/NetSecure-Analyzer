@@ -916,6 +916,7 @@ async function rejectSelectedTrainingCandidates() {
                 mappings={mappings}
                 trainingCandidates={trainingCandidates}
                 trainingStats={trainingStats}
+                selectedTrainingCandidateId={selectedTrainingCandidateId}
                 selectedTrainingCandidateIds={selectedTrainingCandidateIds}
                 setSelectedTrainingCandidateIds={setSelectedTrainingCandidateIds}
                 form={form}
@@ -1864,6 +1865,7 @@ function TrainingView({
   mappings,
   trainingCandidates,
   trainingStats,
+  selectedTrainingCandidateId,
   selectedTrainingCandidateIds,
   setSelectedTrainingCandidateIds,
   form,
@@ -1986,7 +1988,16 @@ function TrainingView({
         <button
           type="button"
           className="training-teach-button"
-          onClick={() => setShowManualTrainingForm(true)}
+          onClick={() => {
+            setSelectedTrainingCandidateId(null);
+            setForm({
+              configuration_pattern: "",
+              security_category: "",
+              baseline_parameter: "",
+              expected_value: "",
+            });
+            setShowManualTrainingForm(true);
+          }}
         >
           <span>+</span>
           Teach Analyzer
@@ -2461,18 +2472,16 @@ function TrainingView({
         </div>
 
         <div className="training-mapping-toolbar">
-          <div className="training-global-toolbar">
-            <div className="training-search">
-              {/* existing search input */}
-            </div>
-
-            <div className="training-filter">
-              {/* existing status select */}
-            </div>
-
-            <div className="training-filter">
-              {/* existing category select */}
-            </div>
+          <div className="training-search">
+            <input
+              type="search"
+              value={mappingSearch}
+              onChange={(event) =>
+                setMappingSearch(event.target.value)
+              }
+              placeholder="Search configuration patterns or parameters..."
+              aria-label="Search learned mappings"
+            />
           </div>
 
           <select
@@ -2480,6 +2489,7 @@ function TrainingView({
             onChange={(event) =>
               setMappingStatus(event.target.value)
             }
+            aria-label="Filter learned mappings by status"
           >
             <option value="ALL">All Status</option>
             <option value="ACTIVE">Active</option>
@@ -2491,8 +2501,10 @@ function TrainingView({
             onChange={(event) =>
               setMappingCategory(event.target.value)
             }
+            aria-label="Filter learned mappings by category"
           >
             <option value="ALL">All Categories</option>
+
             {categories.map((category) => (
               <option value={category} key={category}>
                 {category}
@@ -2590,150 +2602,7 @@ function TrainingView({
         )}
       </section>
 
-      {showManualTrainingForm && (
-        <section className="training-panel training-teach-panel">
-          <div className="training-section-header">
-            <div>
-              <div className="training-section-kicker">
-                MANUAL KNOWLEDGE
-              </div>
-              <h2>Teach the Analyzer</h2>
-              <p>
-                Create a global semantic mapping when the analyzer
-                needs explicit human guidance.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() => setShowManualTrainingForm(false)}
-            >
-              Cancel
-            </button>
-          </div>
-
-          <form
-            onSubmit={onSubmit}
-            className="training-form training-form-modern"
-          >
-            <label>
-              Configuration Pattern
-
-              <textarea
-                value={form.configuration_pattern}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    configuration_pattern: event.target.value,
-                  })
-                }
-                placeholder="Example: secure management access enabled"
-                required
-              />
-
-              <small>
-                Enter the configuration syntax or semantic pattern
-                the analyzer should recognize.
-              </small>
-            </label>
-
-            <label>
-              Security Category
-
-              <select
-                value={form.security_category}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    security_category: event.target.value,
-                    baseline_parameter: "",
-                  })
-                }
-                required
-              >
-                <option value="">Select category</option>
-
-                {categories.map((category) => (
-                  <option value={category} key={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              Baseline Parameter
-
-              <select
-                value={form.baseline_parameter}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    baseline_parameter: event.target.value,
-                  })
-                }
-                required
-              >
-                <option value="">
-                  Select baseline parameter
-                </option>
-
-                {(baselineParameters[form.security_category] || []).map(
-                  (parameter) => (
-                    <option value={parameter} key={parameter}>
-                      {parameter}
-                    </option>
-                  )
-                )}
-              </select>
-            </label>
-
-            <label>
-              Expected Value
-
-              <select
-                value={form.expected_value}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    expected_value: event.target.value,
-                  })
-                }
-                required
-              >
-                <option value="" disabled>
-                  Select expected value
-                </option>
-
-                <option value="True">True</option>
-                <option value="False">False</option>
-              </select>
-            </label>
-
-            <div className="training-form-footer">
-              <span>
-                New mappings become part of the shared AI knowledge
-                base.
-              </span>
-
-              <button
-                type="submit"
-                className="primary-button"
-                disabled={loading}
-              >
-                {loading
-                  ? "Saving..."
-                  : "Save Learned Mapping"}
-              </button>
-            </div>
-          </form>
-        </section>
-      )}
-
-
-
-      {selectedMapping && (
+          {selectedMapping && (
         <div
           className="training-modal-backdrop"
           onClick={() => setSelectedMapping(null)}
