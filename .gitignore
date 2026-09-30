@@ -60,3 +60,6 @@ backend/test_e2e_cisco.cfg
 # Local scanner agent environment
 scanner-agent/.venv/
 scanner-agent/__pycache__/
+
+# Local Cloudflare Tunnel executable
+tools/cloudflared.exe

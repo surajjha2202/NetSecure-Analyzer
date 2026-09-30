@@ -564,7 +564,6 @@ const [selectedTrainingCandidateIds, setSelectedTrainingCandidateIds] =
       });
 
       setSelectedTrainingCandidateId(null);
-      setShowManualTrainingForm(false);
 
       await Promise.all([
         loadMappings(),
